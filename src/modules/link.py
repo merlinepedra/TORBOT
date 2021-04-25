@@ -2,9 +2,11 @@
 This module is used to create a LinkNode that can be consumued by a LinkTree
 and contains useful Link methods.
 """
+import yaml
 import requests
 import requests.exceptions
 import validators
+import sys
 import re
 from bs4 import BeautifulSoup
 from .utils import multi_thread
@@ -63,8 +65,36 @@ def get_json_data(node):
             node = LinkNode(link)
             title = node.name
             json.append({"link":link,"title":title})
-    return json    
+    return json
 
+
+def get_content(node):
+
+    """Identifies the content associated with the node
+
+      Args:
+       node (LinkNode): Node used to get the content from.
+
+      Returns:
+        contetnt (list): List of Contents
+
+    """
+    searchvalues=[]
+    Listname=""
+    content=[]
+    response = node.response.text
+    with open(r'{}/modules/Bitcoin.yaml'.format(sys.path[0])) as file:
+        website_identification_docs = yaml.load_all(file, Loader=yaml.FullLoader)
+        for identity_name in website_identification_docs:
+            for name,values in identity_name.items():
+                searchvalues = values
+                Listname = name
+        for keywords in searchvalues:
+            #if(node.find_all(string=re.compile(keywords))):
+            if(re.findall(keywords, response)):
+                content.append(Listname)
+                break
+    return content
 
 def get_images(node):
     """Finds all images associated with node.
@@ -113,6 +143,7 @@ class LinkNode:
         self._links = []
         self._images = []
         self._json_data = []
+        self._content = []
         self._metadata = {}
 
         # Attempts to connect to link, throws an error if link is unreachable
@@ -144,13 +175,23 @@ class LinkNode:
         return self._emails
 
     @property
+    def content(self):
+        """
+        Getter for website identification
+        """
+        if not self._content:
+            self._content = get_content(self)
+        return self._content
+
+
+    @property
     def json_data(self):
         """
         Getter for node titles
         """
         if not self._json_data:
             self._json_data = get_json_data(self)
-        return self._json_data    
+        return self._json_data
 
     @property
     def links(self):

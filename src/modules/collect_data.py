@@ -85,11 +85,11 @@ def collect_data():
             metadata = [body]
         entry = {
             "ID": uuid.uuid4(),
-            "Title": title.strip(),
+            "Title": body.strip(),
             "Meta Tags": meta_tags,
             "Content": metadata
         }
         print(entry)
         writer.writerow(entry)
-        
+
     multi_thread(links, handle_link)

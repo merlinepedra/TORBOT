@@ -5,7 +5,7 @@ import { NgxSpinnerService } from "ngx-spinner";
 import { Router } from '@angular/router';
 export class Crawl{
   constructor(
-    public ip: String,
+    public ip : String,
     public port : number,
     public no_socks : Boolean,
     public url : String,
@@ -16,7 +16,9 @@ export class Crawl{
     public info : Boolean,
     public save : Boolean,
     public depth : Number,
-    public download: Boolean
+    public download : Boolean,
+    public content : Boolean,
+    //public fetcher : Boolean
   ){}
 }
 
@@ -36,6 +38,8 @@ export class CrawlUrlComponent implements OnInit {
   isDownload = false;
   isNosocks = false;
   isInfo = false;
+  //isFetcher = false;
+  isContent = false;
   alterIP='127.0.0.1';
   alterPort=9050;
   value: number = 0;
@@ -55,7 +59,7 @@ export class CrawlUrlComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.crawlData=new Crawl(this.alterIP,this.alterPort,this.isNosocks,this.inputURL,this.isVersion,this.isMail,this.isInfo,this.isSave,this.value,this.isDownload);
+    this.crawlData=new Crawl(this.alterIP,this.alterPort,this.isNosocks,this.inputURL,this.isVersion,this.isMail,this.isInfo,this.isSave,this.value,this.isDownload,this.isContent);
   }
 
 
@@ -70,13 +74,15 @@ export class CrawlUrlComponent implements OnInit {
     this.crawlData.save=this.isSave;
     this.crawlData.depth=this.value;
     this.crawlData.download=this.isDownload;
+    this.crawlData.content=this.isContent;
+    //this.crawlData.fetcher=this.isFetcher;
     //console.log(this.crawlData)
     //console.log(this.inputURL);
     //console.log(this.isVersion,this.isMail,this.isDownload,this.isInfo,this.isNosocks,this.isSave,this.value);
     this.spinner.show();
     this.crawlDataService.getCrawlData(this.crawlData).subscribe(
       data=>{
-        console.log(data);
+        console.log("outdata"+data);
         this.outData=data
         this.spinner.hide();
         this.advanceSearch = false;
@@ -86,11 +92,9 @@ export class CrawlUrlComponent implements OnInit {
         this.router.navigate(['**'])
       }
     )
-    
+
   }
   enableAdvanceSearch(){
     this.advanceSearch = true;
   }
 }
-
-

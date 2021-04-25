@@ -1,20 +1,22 @@
 """
 MAIN MODULE
 """
+import json
 import argparse
 import socket
 import socks
-
+from hsfetcher.hs_fetcher import fetchme
 from requests.exceptions import HTTPError
-
 from modules.analyzer import LinkTree
 from modules.color import color
 from modules.link_io import LinkIO
 from modules.link import LinkNode
 from modules.updater import updateTor
 from modules.savefile import saveJson
+from modules.savefile import getJson
 from modules.info import execute_all
 from modules.collect_data import collect_data
+
 
 # GLOBAL CONSTS
 LOCALHOST = "127.0.0.1"
@@ -124,6 +126,12 @@ def get_args():
     parser.add_argument("--gather",
                         action="store_true",
                         help="Gather data for analysis")
+    parser.add_argument("-c", "--content",
+                        action="store_true",
+                        help="Identiy the content of the website")
+    parser.add_argument("-f", "--fetcher",
+                        action="store_true",
+                        help="Fetch version 2 onion links from HSDir")
     parser.add_argument("--no-socks",
                         action="store_true",
                         help="Don't use local SOCKS. Useful when TorBot is"
@@ -137,10 +145,11 @@ def main():
     """
     args = get_args()
     connect(args.ip, args.port, args.no_socks)
-    
+
     if args.gather:
         collect_data()
         return
+
     # If flag is -v, --update, -q/--quiet then user only runs that operation
     # because these are single flags only
     if args.version:
@@ -153,6 +162,9 @@ def main():
         header()
     # If url flag is set then check for accompanying flag set. Only one
     # additional flag can be set with -u/--url flag
+    if args.fetcher:
+        fetchme()
+
     if args.url:
         try:
             node = LinkNode(args.url)
@@ -175,6 +187,10 @@ def main():
             else:
                 tree = LinkTree(node)
             tree.show()
+
+        if args.content:
+            print(node.content)
+
         if args.download:
             tree = LinkTree(node)
             file_name = str(input("File Name (.pdf/.png/.svg): "))
@@ -190,10 +206,11 @@ def main():
     print("\n\n")
 
 def test(args):
- 
+
     """
     TorBot's Core
     """
+    jsonvalues = {}
     #args = get_args()
     #connect("127.0.0.1",9050,False)
     connect(args['ip'], args['port'], args['no_socks'])
@@ -213,6 +230,9 @@ def test(args):
      #   header()
     # If url flag is set then check for accompanying flag set. Only one
     # additional flag can be set with -u/--url flag
+    # if args['fetcher'] ==True:
+    #     saveJson('Fetching',fetchme())
+
     if "url" in args:
         print("url",args['url'])
         url = args['url']
@@ -234,6 +254,10 @@ def test(args):
             execute_all(node.uri)
             if args['save']:
                 print('Nothing to save.\n')
+        if args['content']:
+            #saveJson("Content ",node.content)
+            jsonvalues.update({"Content":node.content})
+            #print("Content of the website is "+node.content[0])
         #if args['visualize']==True:
         #    if "depth" in args:
         #        tree = LinkTree(node, stop_depth=args['depth'])
@@ -246,16 +270,18 @@ def test(args):
             tree.save(file_name)
         else:
             LinkIO.display_children(node)
+            jsonvalues.update({"Links":node.links})
             if args['save']==True:
                 saveJson("Links", node.links)
+
     else:
         print("usage: See torBot.py -h for possible arguments.")
-    
-    print("\n\n")
-    #jsonvalues = [node.json_data, node.links]   
-    return node.links
 
-    
+    print("\n\n")
+    print(jsonvalues)
+    #jsonvalues = [node.json_data, node.links]
+    return jsonvalues
+
 if __name__ == '__main__':
     try:
         main()

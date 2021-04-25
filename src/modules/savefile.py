@@ -27,3 +27,8 @@ def saveJson(datatype, data):
 
     print("\nData will be saved with a File Name :", file_name)
     return file_name
+
+
+def getJson(file_name):
+    with open(file_name,"r") as file:
+        print(file.read())

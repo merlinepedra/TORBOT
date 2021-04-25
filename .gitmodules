@@ -1,0 +1,3 @@
+[submodule "hsfetcher"]
+	path = src/hsfetcher
+	url = https://github.com/JCMarques15/tor-hs-fetcher

@@ -22,15 +22,17 @@ def callTor():
     info=content['info']
     save=content['save']
     depth=content['depth']
-    download=['download']
-    
-    
+    download=content['download']
+    identify=content['content']
+    #fetcher=content['fetcher']
+
+
     args={'ip':ip,'port':port,'no_socks':no_socks,'url':url,'version':version,
-          'mail':mail,'info':info,'save':save,'depth':depth,'download':download
-    
+          'mail':mail,'info':info,'save':save,'depth':depth,'download':download,'content':identify
+#'fetcher':fetcher
     }
     data1=test(args)
-    return jsonify(data1), 200, {'Access-Control-Allow-Origin': '*'} 
-    
+    return jsonify(data1), 200, {'Access-Control-Allow-Origin': '*'}
+
 
 app.run()
