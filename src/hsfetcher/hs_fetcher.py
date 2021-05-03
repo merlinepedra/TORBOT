@@ -305,7 +305,7 @@ def fetchme():
 
     db = sqlite3.connect("{}/hsfetcher/Database/hidden_services.db".format(sys.path[0]), check_same_thread=False)
     cursor = db.cursor()
-    with open("{}/sqlite_database_create.sql".format(sys.path[0])) as create_sql:
+    with open("{}/hsfetcher/Database/sqlite_database_create.sql".format(sys.path[0])) as create_sql:
       cursor.executescript(create_sql.read())
 
   # Start the threads

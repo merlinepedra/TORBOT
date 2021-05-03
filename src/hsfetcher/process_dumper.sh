@@ -2,7 +2,7 @@
 
 # Check if the script was run by root
 # If not then executes it again with sudo
-if [ "$EUID" -ne 0 ]; then 
+if [ "$EUID" -ne 0 ]; then
   sudo "$0" "$1"
   exit 0
 fi
@@ -12,7 +12,8 @@ DATE_TIME="$(date +%Y-%m-%d-%HH)"
 BASE_DIRECTORY="$(cd $(dirname $0) && pwd)"
 DUMPS_DIRECTORY="$BASE_DIRECTORY/Memory_Dumps"
 PROCESS_DUMP_DIRECTORY="$DUMPS_DIRECTORY/$DATE_TIME-$1"
-
+USERNAME=$(whoami)
+TORID=$(top -n 1 | grep "tor" | grep -Eo '^[^ ]+')
 # Check if memory dumps directory exists
 # if not it creates it
 if [ ! -d "$DUMPS_DIRECTORY" ]; then
@@ -31,20 +32,20 @@ if [ ! -d "$PROCESS_DUMP_DIRECTORY" ]; then
     mkdir "$PROCESS_DUMP_DIRECTORY";
     echo "Starting process...";
     START_TIME="$(date +%s)";
-    grep rw-p /proc/4673/maps | grep -v "lib" | sed -n 's/^\([0-9a-f]*\)-\([0-9a-f]*\) .*$/\1 \2/p' | while read start stop; do gdb --batch --pid 4673 -ex "dump memory $PROCESS_DUMP_DIRECTORY/$start-$stop.dump 0x$start 0x$stop" &> /dev/null; done;
+    grep rw-p /proc/"TORID"/maps | grep -v "lib" | sed -n 's/^\([0-9a-f]*\)-\([0-9a-f]*\) .*$/\1 \2/p' | while read start stop; do gdb --batch --pid "$TORID" -ex "dump memory $PROCESS_DUMP_DIRECTORY/$start-$stop.dump 0x$start 0x$stop" &> /dev/null; done;
     END_TIME="$(date +%s)";
     echo "Finished memory dump, run for: $(($END_TIME - $START_TIME)) seconds";
     START_TIME="$(date +%s)";
     strings "$PROCESS_DUMP_DIRECTORY"/*.dump > "$PROCESS_DUMP_DIRECTORY.str"
     END_TIME="$(date +%s)";
-    echo "Finished strings dump, run for: $(($END_TIME - $START_TIME)) seconds";    
+    echo "Finished strings dump, run for: $(($END_TIME - $START_TIME)) seconds";
     START_TIME="$(date +%s)";
     tar --directory "$DUMPS_DIRECTORY" --remove-files -zcf "$DUMPS_DIRECTORY/$DATE_TIME-$1.tar.gz" "$DATE_TIME-$1"
     END_TIME="$(date +%s)";
     echo "Finished archiving dump, run for: $(($END_TIME - $START_TIME)) seconds";
     } 2>&1 | tee -a "$BASE_DIRECTORY/process_dumper.log"
     echo "################################################################" >> "$BASE_DIRECTORY/process_dumper.log"
-    chown -R vpn:vpn "$DUMPS_DIRECTORY" "$BASE_DIRECTORY/process_dumper.log"
+    chown -R "$USERNAME":"$USERNAME" "$DUMPS_DIRECTORY" "$BASE_DIRECTORY/process_dumper.log"
     exit 0
   else
     echo "Dump already exists" | tee -a "$BASE_DIRECTORY/process_dumper.log"
